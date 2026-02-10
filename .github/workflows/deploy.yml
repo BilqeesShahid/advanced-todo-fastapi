@@ -12,26 +12,25 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Configure Git
-      run: |
-        git config --global user.email "bot@github.com"
-        git config --global user.name "Bot"
-
-    - name: Clone Hugging Face Space
+    - name: Deploy to HF Space
       env:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
         HF_USERNAME: ${{ secrets.HF_USERNAME }}
         HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
       run: |
-        git clone https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/$HF_SPACE_NAME hf
+        git config --global user.email "bot@github.com"
+        git config --global user.name "Bot"
 
-    - name: Copy backend project to HF repo
-      run: |
-        cp -r backend/* hf/
+        # Clone HF space repo
+        git clone https://huggingface.co/spaces/$HF_USERNAME/$HF_SPACE_NAME hf
 
-    - name: Commit and push
-      working-directory: hf
-      run: |
+        # Copy all necessary files to hf/
+        cp -r app hf/
+        cp Dockerfile hf/
+        # Add any other files/folders you want to deploy
+        # cp -r some_folder hf/
+
+        cd hf
         git add .
         git commit -m "Deploy" || echo "No changes to commit"
-        git push
+        git push https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/$HF_SPACE_NAME main
