@@ -12,11 +12,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.12
-
     - name: Configure Git
       run: |
         git config --global user.email "bot@github.com"
@@ -30,14 +25,9 @@ jobs:
       run: |
         git clone https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/$HF_SPACE_NAME hf
 
-    - name: Copy files to HF repo
+    - name: Copy backend project to HF repo
       run: |
-        cp main.py hf/
-        cp pyproject.toml hf/
-        cp uv.lock hf/
-        cp Dockerfile hf/
-        # Add any extra directories you need, e.g.,
-        # cp -r src hf/
+        cp -r backend/* hf/
 
     - name: Commit and push
       working-directory: hf
