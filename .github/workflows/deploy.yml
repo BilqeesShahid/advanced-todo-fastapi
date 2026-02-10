@@ -9,27 +9,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # 1️⃣ Checkout code
     - name: Get code
       uses: actions/checkout@v4
 
+    # 2️⃣ Install dependencies and run tests
     - name: Run tests
       run: |
-        pip install --upgrade pip
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest pytest-asyncio
+        # Ensure Python can import app module
         export PYTHONPATH=$PYTHONPATH:$(pwd)
         pytest
 
+    # 3️⃣ Login to Hugging Face Docker
     - name: Login to Hugging Face
       env:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
       run: |
         echo "$HF_TOKEN" | docker login -u __token__ --password-stdin huggingface.co
 
+    # 4️⃣ Build Docker image
     - name: Build Docker image
       run: |
         docker build -t advanced-todo-backend .
 
+    # 5️⃣ Tag Docker image for Hugging Face Space
     - name: Tag image for Hugging Face
       env:
         HF_USERNAME: ${{ secrets.HF_USERNAME }}
@@ -37,6 +43,7 @@ jobs:
       run: |
         docker tag advanced-todo-backend:latest huggingface.co/$HF_USERNAME/$HF_SPACE_NAME:latest
 
+    # 6️⃣ Push Docker image to Hugging Face Space
     - name: Push image to Hugging Face Space
       env:
         HF_USERNAME: ${{ secrets.HF_USERNAME }}
