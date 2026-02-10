@@ -1,4 +1,4 @@
-name: Deploy to Hugging Face (Docker)
+name: Deploy to Hugging Face
 
 on:
   push:
@@ -9,44 +9,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1️⃣ Checkout code
-    - name: Get code
+    - name: Checkout code
       uses: actions/checkout@v4
 
-    # 2️⃣ Install dependencies and run tests
-    - name: Run tests
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest pytest-asyncio
-        # Ensure Python can import app module
-        export PYTHONPATH=$PYTHONPATH:$(pwd)
-        pytest
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.12
 
-    # 3️⃣ Login to Hugging Face Docker
-    - name: Login to Hugging Face
+    - name: Configure Git
+      run: |
+        git config --global user.email "bot@github.com"
+        git config --global user.name "Bot"
+
+    - name: Clone Hugging Face Space
       env:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
-      run: |
-        echo "$HF_TOKEN" | docker login -u __token__ --password-stdin huggingface.co
-
-    # 4️⃣ Build Docker image
-    - name: Build Docker image
-      run: |
-        docker build -t advanced-todo-backend .
-
-    # 5️⃣ Tag Docker image for Hugging Face Space
-    - name: Tag image for Hugging Face
-      env:
         HF_USERNAME: ${{ secrets.HF_USERNAME }}
         HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
       run: |
-        docker tag advanced-todo-backend:latest huggingface.co/$HF_USERNAME/$HF_SPACE_NAME:latest
+        git clone https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/$HF_SPACE_NAME hf
 
-    # 6️⃣ Push Docker image to Hugging Face Space
-    - name: Push image to Hugging Face Space
-      env:
-        HF_USERNAME: ${{ secrets.HF_USERNAME }}
-        HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+    - name: Copy files to HF repo
       run: |
-        docker push huggingface.co/$HF_USERNAME/$HF_SPACE_NAME:latest
+        cp main.py hf/
+        cp pyproject.toml hf/
+        cp uv.lock hf/
+        cp Dockerfile hf/
+        # Add any extra directories you need, e.g.,
+        # cp -r src hf/
+
+    - name: Commit and push
+      working-directory: hf
+      run: |
+        git add .
+        git commit -m "Deploy" || echo "No changes to commit"
+        git push
