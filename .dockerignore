@@ -1,0 +1,9 @@
+node_modules
+.next
+dist
+.git
+.gitignore
+Dockerfile
+.env
+__pycache__
+*.pyc

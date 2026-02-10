@@ -1,0 +1,17 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kafka-pubsub
+  namespace: default
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    - name: brokers
+      value: "localhost:9093"   # your Docker Kafka port
+    - name: consumerGroup
+      value: "todo-group"       # group for your app
+    - name: publishTopic
+      value: "todo-topic"       # topic you want to use
+    - name: authType
+      value: "none"             # required for Dapr, even if no auth
