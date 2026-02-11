@@ -27,6 +27,7 @@ jobs:
         # Copy all necessary files to hf/
         cp -r app hf/
         cp Dockerfile hf/
+        cp requirements.txt hf/
         # Add any other files/folders you want to deploy
         # cp -r some_folder hf/
 
